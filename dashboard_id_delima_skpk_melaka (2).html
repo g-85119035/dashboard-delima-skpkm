@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard DELIMa SKPK Melaka</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@400;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        google: ['Product Sans', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'g-blue': '#4285F4',
+                        'g-red': '#EA4335',
+                        'g-yellow': '#FBBC05',
+                        'g-green': '#34A853',
+                        'dark-bg': '#0f172a',
+                        'panel-bg': '#1e293b',
+                    },
+                    animation: {
+                        'spin-slow': 'spin 3s linear infinite',
+                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Digital Grid Background */
+        .digital-grid {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Glowing Orbs (Google Colors) */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: 0;
+            opacity: 0.4;
+            animation: float 10s ease-in-out infinite alternate;
+        }
+        .orb-blue { background: #4285F4; width: 400px; height: 400px; top: -100px; left: -100px; }
+        .orb-red { background: #EA4335; width: 300px; height: 300px; top: 20%; right: -50px; animation-delay: -2s; }
+        .orb-yellow { background: #FBBC05; width: 350px; height: 350px; bottom: -50px; left: 10%; animation-delay: -4s; }
+        .orb-green { background: #34A853; width: 250px; height: 250px; bottom: 20%; right: 10%; animation-delay: -6s; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, 50px) scale(1.1); }
+            100% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        /* Glassmorphism Panel */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Google Theme Top Border */
+        .google-border-top {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #4285F4 25%, #EA4335 25% 50%, #FBBC05 50% 75%, #34A853 75%);
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+        }
+
+        /* Logo Styling - Making it very prominent */
+        .school-logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .school-logo {
+            width: 160px;
+            height: auto;
+            max-height: 200px;
+            object-fit: contain;
+            border-radius: 12px;
+            filter: drop-shadow(0 0 20px rgba(66, 133, 244, 0.4));
+            position: relative;
+            z-index: 20;
+        }
+
+        /* Input & Button Styles */
+        .input-google {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .input-google:focus {
+            outline: none;
+            border-color: #4285F4;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.3);
+        }
+
+        .btn-google {
+            background: #4285F4;
+            color: white;
+            transition: all 0.3s;
+        }
+        .btn-google:hover:not(:disabled) {
+            background: #3367d6;
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.5);
+            transform: translateY(-2px);
+        }
+        .btn-google:disabled {
+            background: #475569;
+            cursor: not-allowed;
+        }
+
+        /* Result Cards */
+        .result-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #4285F4;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .result-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        /* Value boxes inside results */
+        .value-box {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4285F4; }
+    </style>
+</head>
+<body>
+    
+    <!-- Animated Digital Background Elements -->
+    <div class="digital-grid"></div>
+    <div class="orb orb-blue"></div>
+    <div class="orb orb-red"></div>
+    <div class="orb orb-yellow"></div>
+    <div class="orb orb-green"></div>
+
+    <div class="flex-grow flex items-center justify-center p-4 sm:p-8 relative z-10 min-h-screen">
+        
+        <!-- Main Application Container -->
+        <div class="glass-panel w-full max-w-4xl rounded-xl p-6 sm:p-10 shadow-2xl">
+            <div class="google-border-top"></div>
+            
+            <!-- Header Section with Prominent Logo -->
+            <div class="text-center mb-8">
+                <div class="school-logo-container">
+                    <img id="schoolLogo" src="LOGO_1_-removebg-preview.png" alt="Logo SK Pendidikan Khas Melaka" class="school-logo" style="display: block; margin: 0 auto; z-index: 50;">
+                </div>
+                
+                <h1 class="font-google text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-wide mb-2">
+                    <span class="text-g-blue">G</span><span class="text-g-red">o</span><span class="text-g-yellow">o</span><span class="text-g-blue">g</span><span class="text-g-green">l</span><span class="text-g-red">e</span> Workspace
+                </h1>
+                <h2 class="text-xl sm:text-2xl text-gray-300 font-semibold mb-3">
+                    ID DELIMa SK Pendidikan Khas Melaka
+                </h2>
+                <p class="text-gray-400 text-sm sm:text-base max-w-lg mx-auto">
+                    Portal semakan digital pantas. Masukkan nama penuh murid untuk mendapatkan ID DELIMa dan Kata Laluan.
+                </p>
+                
+                <!-- Status Bar -->
+                <div class="mt-5 flex justify-center">
+                    <span id="status-indicator" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800/80 border border-g-yellow/50 text-g-yellow text-xs sm:text-sm font-semibold shadow-sm backdrop-blur-sm transition-all duration-300">
+                        <i class="fas fa-satellite-dish animate-pulse-fast"></i> Menyambung ke Pangkalan Data...
+                    </span>
+                </div>
+            </div>
+
+            <!-- Search Section -->
+            <div class="mb-8 relative z-20 bg-slate-800/40 p-5 rounded-xl border border-slate-700/50">
+                <label for="searchInput" class="block text-gray-300 font-semibold mb-3 text-sm tracking-wide">
+                    <i class="fas fa-search text-g-blue mr-2"></i>CARI REKOD MURID
+                </label>
+                <div class="relative flex flex-col sm:flex-row gap-4">
+                    <div class="relative flex-grow">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-user-astronaut text-gray-400"></i>
+                        </div>
+                        <input type="text" id="searchInput" disabled
+                            class="input-google w-full pl-12 pr-4 py-3.5 rounded-lg text-lg placeholder-gray-500 font-medium"
+                            placeholder="Sila taip nama penuh atau sebahagian nama..."
+                            autocomplete="off">
+                    </div>
+                    <button id="searchBtn" disabled
+                        class="btn-google px-8 py-3.5 rounded-lg font-bold flex items-center justify-center gap-2 text-lg shadow-lg">
+                        <i class="fas fa-check"></i> SEMAK
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsArea" class="hidden">
+                <div class="border-t border-slate-700/50 pt-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fas fa-database text-g-green"></i> Hasil Carian
+                        </h3>
+                        <span id="resultCount" class="text-xs font-medium bg-slate-800 text-gray-300 px-3 py-1 rounded-full border border-slate-700"></span>
+                    </div>
+                    
+                    <div id="loadingResults" class="hidden py-10 flex flex-col items-center justify-center">
+                        <div class="flex gap-2 mb-4">
+                            <div class="w-3 h-3 rounded-full bg-g-blue animate-bounce"></div>
+                            <div class="w-3 h-3 rounded-full bg-g-red animate-bounce" style="animation-delay: 0.1s"></div>
+                            <div class="w-3 h-3 rounded-full bg-g-yellow animate-bounce" style="animation-delay: 0.2s"></div>
+                            <div class="w-3 h-3 rounded-full bg-g-green animate-bounce" style="animation-delay: 0.3s"></div>
+                        </div>
+                        <p class="text-gray-400 font-medium text-sm">Menyaring data...</p>
+                    </div>
+
+                    <div id="noResults" class="hidden py-8 text-center bg-red-900/20 border border-red-500/30 rounded-lg">
+                        <i class="fas fa-exclamation-triangle text-g-red text-4xl mb-3"></i>
+                        <p class="text-red-400 font-bold text-lg">Tiada rekod dijumpai</p>
+                        <p class="text-sm text-red-300/70 mt-1">Sila pastikan ejaan nama adalah betul atau cuba kata kunci lain.</p>
+                    </div>
+
+                    <!-- Dynamic Results Container -->
+                    <div id="resultsList" class="space-y-4 max-h-[45vh] overflow-y-auto pr-2 pb-2">
+                        <!-- Javascript will inject cards here -->
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-5 text-center text-gray-400 text-xs sm:text-sm font-medium relative z-10 mt-auto bg-slate-900/50 backdrop-blur-md border-t border-slate-800">
+        <p>UNIT ICT & DATA <span class="text-white font-bold">SK PENDIDIKAN KHAS MELAKA</span> &copy; <span id="currentYear"></span></p>
+        <p class="mt-1 text-slate-500">Sistem ini memaparkan maklumat sulit. Sila jaga kerahsiaan kata laluan anda.</p>
+    </footer>
+
+    <script>
+        // Set current year
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // DOM Elements
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const resultsArea = document.getElementById('resultsArea');
+        const resultsList = document.getElementById('resultsList');
+        const loadingResults = document.getElementById('loadingResults');
+        const noResults = document.getElementById('noResults');
+        const statusIndicator = document.getElementById('status-indicator');
+        const resultCount = document.getElementById('resultCount');
+
+        // CSV URL (Source of Truth)
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTEoTUN0_7hbsqyhU8fCwsS4fHjRUfVhyGdHWVwmvPir2kU4lsXbhEJMsg5l5518IIP9FXH-tDyPkKG/pub?output=csv';
+        
+        // State variables
+        let studentsData = [];
+        let headers = [];
+
+        // Simple CSV Parser handling commas in quotes
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            const result = [];
+            
+            headers = lines[0].split(',').map(header => header.trim().replace(/\r/g, ''));
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i]) continue;
+                
+                let row = [];
+                let inQuotes = false;
+                let currentVal = '';
+                
+                for (let j = 0; j < lines[i].length; j++) {
+                    const char = lines[i][j];
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        row.push(currentVal.trim().replace(/\r/g, ''));
+                        currentVal = '';
+                    } else {
+                        currentVal += char;
+                    }
+                }
+                row.push(currentVal.trim().replace(/\r/g, '')); 
+                
+                if (row.length === headers.length || (row.length > 0 && row[0] !== "")) {
+                     let obj = {};
+                     headers.forEach((header, index) => {
+                         obj[header] = row[index] ? row[index].replace(/^"|"$/g, '') : '';
+                     });
+                     result.push(obj);
+                }
+            }
+            return result;
+        }
+
+        // Fetch data from Google Sheets CSV
+        async function fetchData() {
+            try {
+                const response = await fetch(csvUrl);
+                if (!response.ok) throw new Error('Rangkaian tidak stabil');
+                
+                const csvText = await response.text();
+                studentsData = parseCSV(csvText);
+                
+                // Success State UI Update
+                statusIndicator.innerHTML = '<i class="fas fa-check-circle text-g-green"></i> Pangkalan Data Aktif';
+                statusIndicator.className = 'inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800/80 border border-g-green/50 text-white text-xs sm:text-sm font-semibold shadow-sm backdrop-blur-sm';
+                
+                searchInput.disabled = false;
+                searchBtn.disabled = false;
+                searchInput.focus();
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                // Error State UI Update
+                statusIndicator.innerHTML = '<i class="fas fa-times-circle text-g-red"></i> Gagal Memuat Data';
+                statusIndicator.className = 'inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-900/50 border border-g-red/50 text-white text-xs sm:text-sm font-semibold shadow-sm backdrop-blur-sm';
+            }
+        }
+
+        // Initialize fetch
+        fetchData();
+
+        // Search Logic
+        function performSearch() {
+            const query = searchInput.value.trim().toLowerCase();
+            
+            if (query.length < 3) {
+                alert('Sila masukkan sekurang-kurangnya 3 huruf untuk carian yang tepat.');
+                return;
+            }
+
+            // Reset UI for searching
+            resultsArea.classList.remove('hidden');
+            loadingResults.classList.remove('hidden');
+            resultsList.innerHTML = '';
+            noResults.classList.add('hidden');
+            resultCount.textContent = '';
+            
+            searchBtn.disabled = true;
+            searchBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> MENCARI';
+
+            // Simulate slight delay for processing effect
+            setTimeout(() => {
+                // Heuristic column identification based on common names
+                const nameHeader = headers.find(h => h.toLowerCase().includes('nama')) || headers[1]; 
+                const idHeader = headers.find(h => h.toLowerCase().includes('id') || h.toLowerCase().includes('delima')) || headers[3];
+                const classHeader = headers.find(h => h.toLowerCase().includes('kelas') || h.toLowerCase().includes('tingkatan') || h.toLowerCase().includes('tahun')) || headers[2];
+                const passHeader = headers.find(h => h.toLowerCase().includes('pass') || h.toLowerCase().includes('kata laluan') || h.toLowerCase().includes('katalaluan')) || headers[4];
+
+                const results = studentsData.filter(student => {
+                    if (nameHeader && student[nameHeader]) {
+                        return student[nameHeader].toLowerCase().includes(query);
+                    }
+                    return Object.values(student).some(val => 
+                        typeof val === 'string' && val.toLowerCase().includes(query)
+                    );
+                });
+
+                renderResults(results, nameHeader, idHeader, classHeader, passHeader);
+                
+                loadingResults.classList.add('hidden');
+                searchBtn.disabled = false;
+                searchBtn.innerHTML = '<i class="fas fa-check"></i> SEMAK';
+            }, 800);
+        }
+
+        // Render UI Cards for Results
+        function renderResults(results, nameH, idH, classH, passH) {
+            resultsList.innerHTML = '';
+            
+            if (results.length === 0) {
+                noResults.classList.remove('hidden');
+                return;
+            }
+
+            resultCount.textContent = `${results.length} rekod ditemui`;
+
+            results.forEach((student, index) => {
+                const name = student[nameH] || student[headers[1]] || 'Tiada Maklumat';
+                const id = student[idH] || student[headers[2]] || 'Tiada Maklumat';
+                const className = student[classH] || student[headers[0]] || 'Tiada Maklumat';
+                const password = student[passH] || student[headers[3]] || 'Tiada Maklumat'; 
+
+                const card = document.createElement('div');
+                card.className = `result-card rounded-xl p-5 mb-4 opacity-0`;
+                card.style.animation = `slideUp 0.4s ease forwards ${index * 0.1}s`;
+                
+                card.innerHTML = `
+                    <div class="flex items-start gap-4 mb-4 pb-4 border-b border-slate-700">
+                        <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center text-g-blue border border-slate-600 shadow-inner flex-shrink-0">
+                            <i class="fas fa-user-graduate text-xl"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <h4 class="font-bold text-white text-lg leading-tight mb-1">${name}</h4>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-g-yellow/20 text-g-yellow border border-g-yellow/30">
+                                <i class="fas fa-chalkboard-teacher mr-1.5"></i> Kelas: ${className}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="value-box p-4 rounded-lg relative group">
+                            <p class="text-xs text-gray-400 font-bold mb-1 uppercase tracking-widest"><i class="fas fa-id-card mr-1 text-g-blue"></i> ID DELIMa</p>
+                            <p class="font-mono font-bold text-g-blue text-lg select-all break-all" id="id-${index}">${id}</p>
+                            <button onclick="copyToClipboard('id-${index}')" class="absolute top-3 right-3 text-gray-500 hover:text-white bg-slate-800 hover:bg-g-blue transition-colors p-2 rounded-md shadow-sm border border-slate-600" title="Salin ID">
+                                <i class="far fa-copy"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="value-box p-4 rounded-lg relative group">
+                            <p class="text-xs text-gray-400 font-bold mb-1 uppercase tracking-widest"><i class="fas fa-key mr-1 text-g-red"></i> Kata Laluan</p>
+                            <div class="flex items-center mt-1">
+                                <p class="font-mono font-bold text-white text-lg select-all filter blur-[6px] hover:blur-none transition-all duration-300 cursor-help break-all" id="pass-${index}" title="Sentuh/Lalukan tetikus untuk lihat">${password}</p>
+                            </div>
+                            <button onclick="copyToClipboard('pass-${index}')" class="absolute top-3 right-3 text-gray-500 hover:text-white bg-slate-800 hover:bg-g-red transition-colors p-2 rounded-md shadow-sm border border-slate-600" title="Salin Kata Laluan">
+                                <i class="far fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                resultsList.appendChild(card);
+            });
+        }
+
+        // Clipboard Copy Helper
+        window.copyToClipboard = function(elementId) {
+            const element = document.getElementById(elementId);
+            const textToCopy = element.innerText;
+            const btn = element.nextElementSibling;
+            const originalIcon = btn.innerHTML;
+            
+            // Remove blur temporarily if copying password
+            const originalFilter = element.style.filter;
+            element.style.filter = 'none';
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                // Success feedback
+                btn.innerHTML = '<i class="fas fa-check text-white"></i>';
+                btn.classList.add('bg-g-green', 'border-g-green');
+                btn.classList.remove('bg-slate-800', 'hover:bg-g-blue', 'hover:bg-g-red');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalIcon;
+                    btn.className = elementId.startsWith('id') 
+                        ? 'absolute top-3 right-3 text-gray-500 hover:text-white bg-slate-800 hover:bg-g-blue transition-colors p-2 rounded-md shadow-sm border border-slate-600'
+                        : 'absolute top-3 right-3 text-gray-500 hover:text-white bg-slate-800 hover:bg-g-red transition-colors p-2 rounded-md shadow-sm border border-slate-600';
+                    
+                    if(elementId.startsWith('pass-')){
+                        element.style.filter = originalFilter;
+                    }
+                }, 1500);
+            }).catch(err => {
+                console.error('Copy failed: ', err);
+                alert('Sila salin secara manual.');
+            });
+        };
+
+        // Add Animation CSS for Cards
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Event Listeners
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') performSearch();
+        });
+
+    </script>
+</body>
+</html>
