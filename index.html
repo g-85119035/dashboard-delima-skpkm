@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carian ID DELIMa SK Pendidikan Khas Melaka</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome untuk ikon yang lebih kemas -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Latar belakang gelap (slate-900) */
+            color: #e2e8f0; /* Teks cerah (slate-200) */
+            background-image: 
+                linear-gradient(to right, #1e293b 1px, transparent 1px),
+                linear-gradient(to bottom, #1e293b 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        /* Gradient teks Google Workspace */
+        .google-text {
+            background: linear-gradient(to right, #4285F4, #EA4335, #FBBC05, #34A853);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+        
+        .loader {
+            border: 3px solid #1e293b;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Tema Google: Warna Aksesori */
+        .google-border-blue { border-color: #4285F4; }
+        .google-border-red { border-color: #EA4335; }
+        .google-border-yellow { border-color: #FBBC05; }
+        .google-border-green { border-color: #34A853; }
+        
+        .google-text-blue { color: #4285F4; }
+        .google-text-red { color: #EA4335; }
+        .google-text-yellow { color: #FBBC05; }
+        .google-text-green { color: #34A853; }
+
+        .google-bg-blue { background-color: #4285F4; }
+
+        /* Rekaan kad carian & kesan Digital/Glow */
+        .search-card {
+            background-color: rgba(30, 41, 59, 0.7); /* slate-800 lutsinar */
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(66, 133, 244, 0.3); /* Sempadan biru Google yang lembut */
+            box-shadow: 0 0 20px rgba(66, 133, 244, 0.1), inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Input medan teks yang disesuaikan */
+        .custom-input-group {
+            background-color: rgba(15, 23, 42, 0.8); /* slate-900 lutsinar */
+            border: 1px solid #334155; /* slate-700 */
+            transition: all 0.3s ease;
+        }
+        
+        .custom-input-group:focus-within {
+             border-color: #4285F4; /* Google Blue */
+             box-shadow: 0 0 15px rgba(66, 133, 244, 0.4);
+        }
+        
+        /* Butang Semak - Tema Google */
+        .btn-google {
+            background-color: #4285F4;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px 0 rgba(66, 133, 244, 0.39);
+        }
+        .btn-google:hover {
+            background-color: #3367d6;
+            box-shadow: 0 6px 20px rgba(66, 133, 244, 0.5);
+            transform: translateY(-1px);
+        }
+
+        /* Kad Keputusan - Gaya Digital */
+        .result-card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+            border: 1px solid #334155;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Garisan hiasan di bahagian atas kad keputusan menggunakan 4 warna Google */
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #4285F4 25%, #EA4335 25% 50%, #FBBC05 50% 75%, #34A853 75%);
+        }
+        
+        /* Gaya paparan data ala terminal (Digital) */
+        .data-display {
+            background-color: #000;
+            border: 1px solid #334155;
+            box-shadow: inset 0 0 10px rgba(66, 133, 244, 0.1);
+        }
+
+        /* Gaya tetingkap timbul (toast) yang baru */
+        #toast-notification {
+            background-color: #10b981; /* emerald-500 */
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 md:p-8">
+
+    <div class="w-full max-w-md mx-auto flex-grow flex flex-col items-center mt-8 z-10">
+        
+        <!-- Ruangan Logo (Dikemas kini dengan logo dari pengguna) -->
+        <div class="mb-6 rounded-full bg-slate-900 p-1 border-2 google-border-green shadow-[0_0_20px_rgba(52,168,83,0.4)] relative">
+            <!-- Kesan denyutan/glow di belakang logo -->
+            <div class="absolute inset-0 rounded-full bg-green-500 blur-xl opacity-20 animate-pulse"></div>
+            <img src="LOGO_1_-removebg-preview.png" alt="Logo SK Pendidikan Khas Melaka" class="w-24 h-24 object-contain rounded-full relative z-10 p-1" onerror="this.src='https://placehold.co/100x100/1e293b/34A853?text=SKPK'">
+        </div>
+
+        <!-- Header Maklumat -->
+        <div class="text-center mb-8 px-2">
+            <h1 class="text-3xl font-bold mb-2 tracking-tight">
+                <span class="google-text-blue">G</span><span class="google-text-red">o</span><span class="google-text-yellow">o</span><span class="google-text-blue">g</span><span class="google-text-green">l</span><span class="google-text-red">e</span>
+                <span class="text-slate-100 font-normal">Workspace</span>
+            </h1>
+            <h2 class="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-4 leading-tight uppercase tracking-wider text-shadow-sm">
+                ID DELIMa SK Pendidikan Khas Melaka
+            </h2>
+            <p class="text-slate-400 text-sm mb-6 leading-relaxed">
+                Akses Pangkalan Data Digital. Sila masukkan nama penuh murid untuk mendapatkan ID MOE dan Kata Laluan yang dienkripsi.
+            </p>
+            
+            <!-- Status & Statistik Pangkalan Data -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3 transition-all">
+                <div id="dbStatus" class="inline-flex items-center gap-2 bg-slate-900/90 border google-border-green px-5 py-2 rounded-full text-sm font-medium google-text-green shadow-[0_0_10px_rgba(52,168,83,0.2)] backdrop-blur-sm transition-all">
+                    <div class="loader google-border-blue" id="dbLoader" style="border-top-color: #34A853;"></div>
+                    <i class="fa-solid fa-server hidden animate-pulse" id="dbSuccessIcon"></i>
+                    <i class="fa-solid fa-triangle-exclamation text-red-500 hidden" id="dbErrorIcon"></i>
+                    <span id="dbStatusText" class="text-slate-300 font-mono text-xs tracking-wider">Menyambung Hos...</span>
+                </div>
+                
+                <!-- Bilangan Pengguna (Disembunyikan secara lalai) -->
+                <div id="userCountBadge" class="hidden items-center gap-2 bg-slate-900/90 border border-blue-500/30 px-5 py-2 rounded-full text-sm font-medium text-blue-400 shadow-[0_0_10px_rgba(66,133,244,0.15)] backdrop-blur-sm transition-all">
+                    <i class="fa-solid fa-users"></i>
+                    <span id="userCountText" class="font-mono text-xs tracking-wider">0 Rekod Ditemui</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ruangan Carian -->
+        <div class="search-card rounded-2xl w-full p-6 mb-8 relative">
+            
+            <!-- Label Carian -->
+            <div class="flex items-center gap-3 text-slate-300 font-semibold mb-5 text-sm tracking-widest font-mono uppercase">
+                <div class="flex gap-1">
+                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                    <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                    <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+                </div>
+                <span>Terminal Carian Rekod</span>
+            </div>
+
+            <!-- Form Carian -->
+            <form id="searchForm" class="space-y-5 pointer-events-none opacity-50 transition-opacity duration-300">
+                
+                <!-- Input Group -->
+                <div class="custom-input-group rounded-xl flex items-center px-4 py-3.5">
+                    <i class="fa-solid fa-terminal text-blue-400 mr-3 text-sm"></i>
+                    <input type="text" id="searchInput" 
+                        class="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-slate-100 placeholder-slate-600 font-mono text-sm" 
+                        placeholder="C://> Masukkan Nama Murid..." 
+                        autocomplete="off">
+                    
+                    <button type="button" id="clearBtn" class="text-slate-500 hover:text-slate-300 hidden transition-colors">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                
+                <!-- Butang Semak -->
+                <button type="submit" id="searchBtn" class="w-full btn-google text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-3 uppercase tracking-widest text-sm">
+                    <i class="fa-solid fa-microchip"></i>
+                    <span>Akses Data</span>
+                </button>
+            </form>
+            
+            <!-- Overlay Loading semasa mencari -->
+            <div id="searchLoadingOverlay" class="absolute inset-0 bg-slate-900/90 rounded-2xl hidden flex-col items-center justify-center z-10 backdrop-blur-md">
+                <div class="flex gap-2 mb-3">
+                    <div class="w-3 h-3 rounded-full google-bg-blue animate-bounce" style="animation-delay: 0s;"></div>
+                    <div class="w-3 h-3 rounded-full bg-red-500 animate-bounce" style="animation-delay: 0.1s;"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500 animate-bounce" style="animation-delay: 0.2s;"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500 animate-bounce" style="animation-delay: 0.3s;"></div>
+                </div>
+                <span class="text-xs font-mono text-slate-400 uppercase tracking-widest">Menyahkod Pangkalan Data...</span>
+            </div>
+        </div>
+        
+        <!-- Pautan Pantas Portal DELIMa -->
+        <div class="w-full flex justify-center mb-8">
+            <a href="https://d2.delima.edu.my" target="_blank" class="group relative flex items-center justify-center gap-3 px-6 py-3.5 font-bold text-slate-200 transition-all duration-300 bg-slate-800/80 border border-slate-700 rounded-xl hover:bg-slate-800 hover:border-blue-500 hover:shadow-[0_0_20px_rgba(66,133,244,0.2)] backdrop-blur-sm w-full md:w-auto">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" class="w-5 h-5">
+                <span class="tracking-widest text-sm uppercase font-mono">Buka Portal DELIMa 2.0</span>
+                <i class="fa-solid fa-arrow-right text-slate-500 group-hover:text-blue-400 group-hover:translate-x-1 transition-all text-sm ml-2"></i>
+            </a>
+        </div>
+        
+        <!-- Kawasan Pemaparan Hasil -->
+        <div id="resultsArea" class="w-full space-y-4 mb-8">
+            <!-- Hasil akan dipaparkan di sini -->
+        </div>
+
+    </div>
+    
+    <!-- Footer -->
+    <div class="w-full text-center py-6 text-slate-500 text-xs mt-auto">
+        <p class="mb-1">UNIT ICT & DATA <span class="font-bold text-slate-300">SK PENDIDIKAN KHAS MELAKA</span> &copy; 2026</p>
+        <p>Sistem ini memaparkan maklumat sulit. Sila jaga kerahsiaan kata laluan anda.</p>
+    </div>
+
+    <!-- Mesej Toast -->
+    <div id="toast-notification" class="fixed bottom-20 md:bottom-10 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-xl opacity-0 pointer-events-none transition-opacity duration-300 flex items-center gap-2 z-50">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toast-msg">Disalin</span>
+    </div>
+
+    <script>
+        // URL Google Sheets (CSV Output)
+        const DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_dyIzuknPEj6K3cjwR6oe4OShX9cbUJnS1tB32f04ZydVAWiH8KNIiHyqIjTDNrxkLuh_ACF8sEtQ/pub?output=csv";
+        
+        // Simpan data murid
+        let studentData = [];
+        
+        // Elemen DOM
+        const dbLoader = document.getElementById('dbLoader');
+        const dbSuccessIcon = document.getElementById('dbSuccessIcon');
+        const dbErrorIcon = document.getElementById('dbErrorIcon');
+        const dbStatusText = document.getElementById('dbStatusText');
+        const dbStatusContainer = document.getElementById('dbStatus');
+        
+        const userCountBadge = document.getElementById('userCountBadge');
+        const userCountText = document.getElementById('userCountText');
+        
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearBtn');
+        const resultsArea = document.getElementById('resultsArea');
+        const searchLoadingOverlay = document.getElementById('searchLoadingOverlay');
+
+        Papa.parse(DATA_URL, {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                if (results.errors.length > 0 && results.data.length === 0) {
+                     handleDataError();
+                     return;
+                }
+
+                let keys = { nama: "", id_delima: "", kata_laluan: "", kelas: "" };
+
+                if(results.data.length > 0) {
+                    const rowKeys = Object.keys(results.data[0]);
+                    rowKeys.forEach(k => {
+                        const normalizedK = k.trim().toLowerCase();
+                        if(normalizedK.includes("nama") || normalizedK.includes("name")) keys.nama = k;
+                        if(normalizedK.includes("id") || normalizedK.includes("delima") || normalizedK.includes("moe")) keys.id_delima = k;
+                        if(normalizedK.includes("kata laluan") || normalizedK.includes("password") || normalizedK.includes("pass")) keys.kata_laluan = k;
+                        if(normalizedK.includes("kelas") || normalizedK.includes("class") || normalizedK.includes("tingkatan") || normalizedK.includes("tahun")) keys.kelas = k;
+                    });
+                }
+
+                studentData = results.data.map(row => {
+                    return {
+                        nama: row[keys.nama || 'NAMA'] || row['NAMA MURID'] || row[Object.keys(row)[0]] || 'Tiada Nama',
+                        id_delima: row[keys.id_delima || 'ID DELIMA'] || row['ID MOE'] || row[Object.keys(row)[1]] || 'Tiada ID',
+                        kata_laluan: row[keys.kata_laluan || 'KATA LALUAN'] || row['PASSWORD'] || row[Object.keys(row)[2]] || 'Tiada Kata Laluan',
+                        kelas: row[keys.kelas || 'KELAS'] || row['TAHUN'] || row[Object.keys(row)[3]] || 'Tiada Kelas'
+                    }
+                });
+
+                handleDataSuccess();
+            },
+            error: function(error) {
+                handleDataError();
+            }
+        });
+
+        function handleDataSuccess() {
+            dbLoader.classList.add('hidden');
+            dbSuccessIcon.classList.remove('hidden');
+            dbStatusText.textContent = 'PANGKALAN DATA DISAHKAN';
+            dbStatusText.classList.remove('text-slate-300');
+            dbStatusText.classList.add('google-text-green');
+            
+            // Paparkan jumlah rekod data murid
+            userCountBadge.classList.remove('hidden');
+            userCountBadge.classList.add('inline-flex');
+            userCountText.textContent = `${studentData.length} REKOD AKTIF`;
+            
+            // Aktifkan form carian
+            searchForm.classList.remove('pointer-events-none', 'opacity-50');
+        }
+
+        function handleDataError() {
+            dbLoader.classList.add('hidden');
+            dbErrorIcon.classList.remove('hidden');
+            dbStatusText.textContent = 'RALAT SAMBUNGAN DATA';
+            dbStatusText.classList.remove('text-slate-300');
+            dbStatusText.classList.add('text-red-500');
+            dbStatusContainer.classList.replace('google-border-green', 'border-red-900');
+            dbStatusContainer.classList.replace('google-text-green', 'text-red-500');
+            dbStatusContainer.classList.remove('shadow-[0_0_10px_rgba(52,168,83,0.2)]');
+            
+            resultsArea.innerHTML = `
+                <div class="bg-red-900/30 border border-red-800 text-red-200 px-4 py-4 rounded-xl text-center">
+                    <i class="fa-solid fa-triangle-exclamation text-2xl mb-2 text-red-400"></i>
+                    <p class="font-bold">Gagal memuat turun data.</p>
+                    <p class="text-sm mt-1 text-red-300/80">Sila semak sambungan internet anda atau hubungi admin.</p>
+                </div>
+            `;
+        }
+
+        searchInput.addEventListener('input', function(e) {
+            if (e.target.value.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+        });
+
+        clearBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            clearBtn.classList.add('hidden');
+            searchInput.focus();
+            resultsArea.innerHTML = ''; // Boleh pilih untuk bersihkan hasil atau tidak
+        });
+
+        // Event listener untuk hantar form (sama ada butang ditekan atau 'Enter' pada papan kekunci)
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Halang halaman dari refresh
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            
+            if (searchTerm.length === 0) return;
+            
+            // Tunjuk loading sekejap untuk efek visual
+            searchLoadingOverlay.classList.remove('hidden');
+            searchLoadingOverlay.classList.add('flex');
+            
+            setTimeout(() => {
+                performSearch(searchTerm);
+                searchLoadingOverlay.classList.add('hidden');
+                searchLoadingOverlay.classList.remove('flex');
+            }, 400); // delay tiruan selama 0.4s
+        });
+
+        function performSearch(term) {
+            resultsArea.innerHTML = ''; 
+
+            if (term.length < 3) {
+                 resultsArea.innerHTML = `
+                    <div class="bg-slate-800 border border-slate-700 text-slate-300 px-4 py-3 rounded-xl text-center">
+                        <i class="fa-solid fa-circle-info text-blue-400 mr-2"></i>Sila masukkan sekurang-kurangnya 3 huruf.
+                    </div>`;
+                 return;
+            }
+
+            const filteredData = studentData.filter(student => {
+                const studentName = (student.nama || "").toLowerCase();
+                return studentName.includes(term);
+            });
+
+            if (filteredData.length === 0) {
+                resultsArea.innerHTML = `
+                    <div class="result-card p-6 rounded-2xl text-center">
+                        <i class="fa-solid fa-radar text-4xl mb-3 text-slate-600"></i>
+                        <p class="text-slate-300">Tiada padanan rekod ditemui untuk pertanyaan:</p>
+                        <p class="font-mono text-blue-400 mt-2 p-2 bg-slate-900 rounded-lg inline-block border border-slate-700">> ${escapeHTML(term)}</p>
+                        <p class="text-xs mt-4 text-slate-500 uppercase tracking-widest">Sila sahkan parameter ejaan.</p>
+                    </div>`;
+                return;
+            }
+
+            const maxResults = 10;
+            const displayData = filteredData.slice(0, maxResults);
+
+            displayData.forEach(student => {
+                const card = document.createElement('div');
+                card.className = "result-card rounded-2xl p-5 shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_10px_25px_rgba(66,133,244,0.15)]";
+                
+                // Tema Digital / Google
+                card.innerHTML = `
+                    <!-- Tajuk dan Kelas -->
+                    <div class="mb-5 border-b border-slate-700/50 pb-4">
+                        <div class="flex items-start justify-between">
+                            <h3 class="font-bold text-slate-100 text-lg md:text-xl break-words uppercase leading-tight pr-4">
+                                ${escapeHTML(student.nama)}
+                            </h3>
+                            <i class="fa-solid fa-user-check text-green-500 opacity-70"></i>
+                        </div>
+                        <div class="mt-2 inline-flex items-center bg-slate-800 text-blue-300 text-xs font-mono px-3 py-1.5 rounded-md border border-blue-900/50">
+                            <i class="fa-solid fa-layer-group text-blue-500 mr-2 text-[10px]"></i>
+                            Tingkatan/Kelas: ${escapeHTML(student.kelas)}
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <!-- ID DELIMa -->
+                        <div>
+                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1.5 flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> ID Google Workspace
+                            </p>
+                            <div class="data-display rounded-lg p-2 pl-3 flex justify-between items-center group">
+                                <div class="flex-1 overflow-hidden">
+                                    <p class="font-mono text-blue-100 font-medium truncate text-sm md:text-base">${escapeHTML(student.id_delima)}</p>
+                                </div>
+                                <button type="button" onclick="copyText('${escapeHTML(student.id_delima)}', 'ID DELIMa')" class="h-9 w-9 ml-2 flex items-center justify-center rounded bg-slate-800 text-blue-400 border border-slate-700 hover:bg-blue-600 hover:text-white hover:border-blue-500 transition-all flex-shrink-0" title="Salin ID ke Papan Keratan">
+                                    <i class="fa-regular fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Kata Laluan -->
+                        <div>
+                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1.5 flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Kunci Akses (Kata Laluan)
+                            </p>
+                            <div class="data-display rounded-lg p-2 pl-3 flex justify-between items-center group">
+                                <div class="flex-1 overflow-hidden">
+                                    <p class="font-mono text-red-100 font-medium truncate text-sm md:text-base">${escapeHTML(student.kata_laluan)}</p>
+                                </div>
+                                <button type="button" onclick="copyText('${escapeHTML(student.kata_laluan)}', 'Kata Laluan')" class="h-9 w-9 ml-2 flex items-center justify-center rounded bg-slate-800 text-red-400 border border-slate-700 hover:bg-red-600 hover:text-white hover:border-red-500 transition-all flex-shrink-0" title="Salin Kata Laluan ke Papan Keratan">
+                                    <i class="fa-regular fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                resultsArea.appendChild(card);
+            });
+
+            if (filteredData.length > maxResults) {
+                const notice = document.createElement('p');
+                notice.className = "text-center text-xs text-slate-500 mt-4";
+                notice.innerHTML = `Memaparkan ${maxResults} daripada ${filteredData.length} hasil.`;
+                resultsArea.appendChild(notice);
+            }
+            
+            // Tatal (scroll) ke bahagian hasil jika perlu pada skrin kecil
+            resultsArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function copyText(text, label) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "absolute";
+            textArea.style.left = "-999999px";
+            
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast(label + " disalin!");
+            } catch (err) {
+                console.error('Gagal menyalin teks', err);
+                showToast("Gagal menyalin. Sila salin secara manual.", true);
+            } finally {
+                textArea.remove();
+            }
+        }
+
+        let toastTimeout;
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast-notification');
+            const msgSpan = document.getElementById('toast-msg');
+            const icon = toast.querySelector('i');
+            
+            msgSpan.textContent = message;
+            
+            if (isError) {
+                toast.classList.replace('bg-emerald-500', 'bg-red-500');
+                icon.className = 'fa-solid fa-circle-xmark';
+            } else {
+                toast.classList.replace('bg-red-500', 'bg-emerald-500');
+                icon.className = 'fa-solid fa-circle-check';
+            }
+            
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+            }, 3000);
+        }
+
+    </script>
+</body>
+</html>
